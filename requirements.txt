@@ -1,0 +1,4 @@
+chromadb
+nomic
+sentence-transformers
+markdown

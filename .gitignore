@@ -1,0 +1,13 @@
+# .gitignore
+venv/
+__pycache__/
+*.sqlite3
+*.db
+*.log
+*.pyc
+*.pyo
+*.pyd
+*.so
+*.dylib
+chroma_db/
+sites_markdown/

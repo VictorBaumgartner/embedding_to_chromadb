@@ -1,0 +1,11 @@
+docker run \
+  -v $(pwd)/chroma_db:/app/chroma_db \
+  -v $(pwd)/sites_markdown:/app/sites_markdown \
+  chroma-md-ingest
+
+docker start -ai chroma-container
+
+docker run -p 8501:8501 -v $(pwd)/chroma_db:/app/chroma_db chroma-md-ingest
+
+streamlit run /Users/victor/embeddings_chromadb/explore_chroma.py
+
