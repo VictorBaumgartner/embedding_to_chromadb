@@ -35,48 +35,54 @@ else:
         })
     st.table(pd.DataFrame(stats))
 
-# Semantic search across all collections
-st.markdown("## Semantic Search Across All Collections")
-query = st.text_input("Enter your search query:", placeholder="e.g., machine learning advancements")
-max_results = st.slider("Max results per collection", 1, 10, 5)
+# Semantic search in a selected collection
+st.markdown("## Semantic Search in Selected Collection")
 
-if query:
+selected_collection_name = st.selectbox(
+    "Select a collection to search",
+    ["-- Select a collection --"] + [c.name for c in collections]
+)
+
+query = st.text_input("Enter your search query:", placeholder="e.g., machine learning advancements")
+max_results = st.slider("Max results", 1, 10, 5)
+
+if query and selected_collection_name and selected_collection_name != "-- Select a collection --":
     try:
         with st.spinner("Generating query embedding..."):
             query_embedding = embedder.encode(query).tolist()
 
-        st.markdown("### Search Results")
-        all_results = []
-        for collection in collections:
-            results = collection.query(
-                query_embeddings=[query_embedding],
-                n_results=max_results,
-                include=["documents", "ids", "distances"]
-            )
-            for doc, _id, distance in zip(
-                results["documents"][0], results["ids"][0], results["distances"][0]
-            ):
-                all_results.append({
-                    "collection": collection.name,
-                    "id": _id,
-                    "document": doc[:1000],  # Truncate for display
-                    "similarity": 1 - distance  # Convert distance to similarity
-                })
+        selected_collection = client.get_collection(name=selected_collection_name)
+        results = selected_collection.query(
+            query_embeddings=[query_embedding],
+            n_results=max_results,
+            include=["documents", "ids", "distances"]
+        )
 
-        # Sort results by similarity
-        all_results = sorted(all_results, key=lambda x: x["similarity"], reverse=True)
-        
-        if not all_results:
-            st.info("No results found for your query.")
+        results_list = []
+        for doc, _id, distance in zip(
+            results["documents"][0], results["ids"][0], results["distances"][0]
+        ):
+            results_list.append({
+                "id": _id,
+                "document": doc[:1000],
+                "similarity": 1 - distance
+            })
+
+        results_list = sorted(results_list, key=lambda x: x["similarity"], reverse=True)
+
+        if not results_list:
+            st.info("No results found.")
         else:
-            for i, result in enumerate(all_results, 1):
-                with st.expander(f"Result {i} - Collection: {result['collection']} (Similarity: {result['similarity']:.4f})"):
+            for i, result in enumerate(results_list, 1):
+                with st.expander(f"Result {i} (Similarity: {result['similarity']:.4f})"):
                     st.markdown(f"**ID**: `{result['id']}`")
                     st.code(result["document"], language="markdown")
-                    st.markdown("---")
 
     except Exception as e:
         st.error(f"An error occurred: {str(e)}")
+
+elif query:
+    st.warning("Please select a collection to search.")
 
 # Collection preview
 st.markdown("## Collection Preview")
