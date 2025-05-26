@@ -55,7 +55,7 @@ if query and selected_collection_name and selected_collection_name != "-- Select
         results = selected_collection.query(
             query_embeddings=[query_embedding],
             n_results=max_results,
-            include=["documents", "ids", "distances"]
+            include=["documents", "metadatas", "distances"]
         )
 
         results_list = []
